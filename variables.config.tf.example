@@ -1,0 +1,22 @@
+
+variable "aws" {
+  default = {
+    credentials = {
+      "region"     = ""
+      "access_key" = ""
+      "secret_key" = ""
+    }
+  }
+}
+
+variable "resource" {
+  default = {
+    name = "VTENH"
+  }
+}
+
+variable "default_tags" {
+  default = {
+    AutoManaged = "true"
+  }
+}
