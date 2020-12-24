@@ -3,7 +3,7 @@
 *.tfstate.backup
 *.tfstate.lock.info
 
-*_config.tf
+*.config.tf
 
 # logs
 *.log
