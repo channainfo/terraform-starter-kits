@@ -25,5 +25,9 @@ module "rds" {
   postgresql_db_password    = var.rds.postgresql.db_password
   subnet_ids                = module.vpc.private_subnet_ids
   security_group_ids        = [module.sg.postgresql.id]
+}
 
+module "s3_storage" {
+  source      = "./modules/s3"
+  bucket_name = var.s3_storage.bucket_name
 }
