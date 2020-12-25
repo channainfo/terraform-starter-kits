@@ -9,6 +9,10 @@ variable "aws" {
   }
 }
 
+variable "ssh_public_key_file" {
+  default = ""
+}
+
 variable "rds" {
   default = {
     postgresql = {
@@ -31,8 +35,74 @@ variable "name" {
   default = "VTENH"
 }
 
+variable "rails_master_key" {
+  type    = string
+  default = ""
+}
+
+variable "task_cpu" {
+  default = "1024"
+}
+
+variable "task_memory" {
+  default = "2014"
+}
+
+variable "container_cpu" {
+  description = "Number of CPU Unit. 1024 eq 1CPU"
+  type        = string
+  default     = "1024"
+}
+
+variable "container_memory" {
+  default = 1024
+}
+
+variable "container_port" {
+  default = 80
+}
+
+variable "image_id" {
+  default = "ami-065d37ce21ef5bed5"
+}
+
+variable "instance_type" {
+  default = "t3.small"
+}
+
+variable "max_count" {
+  default = 4
+}
+
+variable "min_count" {
+  default = 1
+}
+
+variable "desired_count" {
+  default = 1
+}
+
+
+
 variable "default_tags" {
   default = {
     AutoManaged = "true"
+  }
+}
+
+
+variable "app_environments" {
+  default = {
+    rails_master_key    = ""
+    device_secret_key   = ""
+    asset_host_url      = "
+    host                = "
+    firebase_project_id = ""
+    rails_min_instances = 5
+    rails_max_instance  = 10
+    sms_sender_id       = ""
+    smtp_server         = ""
+    smtp_username       = ""
+    smtp_password       = ""
   }
 }

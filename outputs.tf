@@ -29,3 +29,19 @@ output "rds" {
     }
   }
 }
+
+output "ecr" {
+  value = {
+    repository_url = aws_ecr_repository.main.repository_url
+  }
+}
+
+
+data "aws_caller_identity" "current" {}
+output "account" {
+  value = {
+    account_id  = data.aws_caller_identity.current.account_id
+    caller_arn  = data.aws_caller_identity.current.arn
+    caller_user = data.aws_caller_identity.current.user_id
+  }
+}
