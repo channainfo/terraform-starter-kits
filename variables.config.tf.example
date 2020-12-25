@@ -9,10 +9,8 @@ variable "aws" {
   }
 }
 
-variable "resource" {
-  default = {
-    name = "VTENH"
-  }
+variable "name" {
+  default =  "VTENH"
 }
 
 variable "default_tags" {
