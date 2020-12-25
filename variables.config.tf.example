@@ -9,8 +9,20 @@ variable "aws" {
   }
 }
 
+variable "rds" {
+  default = {
+    postgresql = {
+      engine_class   = "db.t3.medium"
+      engine_version = "12.4"
+      db_name        = ""
+      db_username    = ""
+      db_password    = ""
+    }
+  }
+}
+
 variable "name" {
-  default =  "VTENH"
+  default = "VTENH"
 }
 
 variable "default_tags" {

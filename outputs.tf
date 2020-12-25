@@ -10,13 +10,22 @@ output "vpc" {
 
 output "sg" {
   value = {
-    bastion       = module.sg.bastion
-    webserver     = module.sg.webserver
-    mysql         = module.sg.mysql
-    postgresql    = module.sg.postgresql
-    redis         = module.sg.redis
-    memcached     = module.sg.memcached
-    load_balancer = module.sg.load_balancer
-    ecs           = module.sg.ecs
+    bastion       = module.sg.bastion.id
+    webserver     = module.sg.webserver.id
+    mysql         = module.sg.mysql.id
+    postgresql    = module.sg.postgresql.id
+    redis         = module.sg.redis.id
+    memcached     = module.sg.memcached.id
+    load_balancer = module.sg.load_balancer.id
+    ecs           = module.sg.ecs.id
+  }
+}
+output "rds" {
+  value = {
+    postgresql = {
+      address                    = module.rds.postgresql_address
+      postgresql_engine_versions = module.rds.postgresql_engine_versions
+      engine_version             = module.rds.postgresql_engine_version
+    }
   }
 }
