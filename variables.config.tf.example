@@ -21,6 +21,12 @@ variable "rds" {
   }
 }
 
+variable "s3_storage" {
+  default = {
+    bucket_name = "vtenh"
+  }
+}
+
 variable "name" {
   default = "VTENH"
 }
