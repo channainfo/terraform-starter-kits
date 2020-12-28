@@ -90,12 +90,15 @@ variable "acm_certificate_arn" {
   default = ""
 }
 
+variable "domain_name" {
+  default = "vtenh.com"
+}
+
 variable "default_tags" {
   default = {
     AutoManaged = "true"
   }
 }
-
 
 variable "app_environments" {
   default = {

@@ -45,3 +45,21 @@ output "account" {
     caller_user = data.aws_caller_identity.current.user_id
   }
 }
+
+output "fargate_lb" {
+  value = {
+    lb_dns_name  = module.ecs_fargate.lb_dns_name
+    lb_zone_id   = module.ecs_fargate.lb_zone_id
+    cluster_id   = module.ecs_fargate.cluster_id
+    cluster_name = module.ecs_fargate.cluster_name
+  }
+}
+
+output "route53_dns" {
+  value = {
+    www_name     = module.route53.www_name
+    www_fqdn     = module.route53.www_fqdn
+    non_www_name = module.route53.non_www_name
+    non_www_fqdn = module.route53.non_www_fqdn
+  }
+}
