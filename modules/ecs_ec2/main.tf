@@ -94,7 +94,7 @@ resource "aws_cloudwatch_metric_alarm" "memory_high" {
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
   metric_name         = "MemoryUtilization"
-  namespace           = "System/Linux"
+  namespace           = "AWS/EC2"
   period              = "300"
   statistic           = "Average"
   threshold           = "80"
@@ -113,7 +113,7 @@ resource "aws_cloudwatch_metric_alarm" "memory_low" {
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "2"
   metric_name         = "MemoryUtilization"
-  namespace           = "System/Linux"
+  namespace           = "AWS/EC2"
   period              = "300"
   statistic           = "Average"
   threshold           = "40"
@@ -148,7 +148,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_high" {
 }
 resource "aws_cloudwatch_metric_alarm" "cpu_low" {
   count               = var.metric_type == "CPU" ? 1 : 0
-  alarm_name          = "${var.name}-Low Memory"
+  alarm_name          = "${var.name}-Low CPU"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"

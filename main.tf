@@ -32,14 +32,7 @@ module "s3_storage" {
   bucket_name = var.s3_storage.bucket_name
 }
 
-resource "aws_cloudwatch_log_group" "ec2" {
-  name_prefix       = "/ecs/${local.ecs_ec2_app_name}"
-  retention_in_days = 7
 
-  tags = {
-    "ecs_fargate_log" = "fargate module"
-  }
-}
 # EC2 instance access key name
 
 
@@ -62,11 +55,22 @@ module "iam_ecs" {
   name   = lower(var.name)
 }
 
+resource "aws_cloudwatch_log_group" "ec2" {
+  name_prefix       = "/ecs/${local.ecs_ec2_app_name}"
+  retention_in_days = 7
+
+  tags = {
+    "ecs_ec2_log" = "ec2 module"
+  }
+}
+
 data "template_file" "ecs_ec2" {
   template = file("template/container_def.json.tpl")
-
-  # TODO: review this
-  vars = merge(local.task_template_vars, { app_mode = "web" })
+  vars = merge(local.task_template_vars, {
+    "app_mode"       = "web"
+    "container_name" = local.ecs_ec2_app_name
+    "log_group_name" = aws_cloudwatch_log_group.ec2.name
+  })
 }
 
 
@@ -91,4 +95,46 @@ module "ecs_ec2" {
   execution_role_arn    = module.iam_ecs.execution_role_arn
   task_role_arn         = module.iam_ecs.task_role_arn
   container_definitions = data.template_file.ecs_ec2.rendered
+  metric_type           = "CPU"
+}
+
+
+
+resource "aws_cloudwatch_log_group" "fargate" {
+  name_prefix       = "/ecs/${local.ecs_fargate_app_name}"
+  retention_in_days = 7
+
+  tags = {
+    "ecs_fargate_log" = "fargate module"
+  }
+}
+
+data "template_file" "ecs_fargate" {
+  template = file("template/container_def.json.tpl")
+  vars = merge(local.task_template_vars, {
+    "app_mode"       = "web"
+    "container_name" = local.ecs_fargate_app_name
+    "log_group_name" = aws_cloudwatch_log_group.fargate.name
+  })
+}
+
+module "ecs_fargate" {
+  source                = "./modules/ecs_fargate"
+  name                  = local.ecs_fargate_app_name
+  container_name        = local.ecs_fargate_app_name
+  security_group_ids    = [module.sg.ecs.id]
+  subnet_ids            = module.vpc.public_subnet_ids
+  vpc_id                = module.vpc.vpc_id
+  health_check_path     = var.health_check_path
+  cpu                   = var.task_cpu
+  memory                = var.task_memory
+  desired_count         = var.desired_count
+  max_count             = var.max_count
+  min_count             = var.min_count
+  container_definitions = data.template_file.ecs_fargate.rendered
+  container_port        = var.container_port
+  execution_role_arn    = module.iam_ecs.execution_role_arn
+  task_role_arn         = module.iam_ecs.task_role_arn
+  acm_certificate_arn   = var.acm_certificate_arn
+  metric_type           = "CPU"
 }
