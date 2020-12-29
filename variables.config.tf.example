@@ -100,6 +100,14 @@ variable "default_tags" {
   }
 }
 
+variable "protected_username" {
+  default = ""
+}
+
+variable "protected_password" {
+  default = ""
+}
+
 variable "app_environments" {
   default = {
     rails_master_key    = ""
