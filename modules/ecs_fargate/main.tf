@@ -1,4 +1,4 @@
-resource "aws_alb" "main" {
+resource "aws_lb" "main" {
   name                       = var.name
   load_balancer_type         = "application"
   security_groups            = var.security_group_ids
