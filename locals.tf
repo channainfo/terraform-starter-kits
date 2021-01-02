@@ -4,6 +4,8 @@ locals {
     Generator   = var.name
   }
 
+  s3_cors_sites = ["https://${var.domain_name}", "https://www.${var.domain_name}"]
+
   ecs_ec2_app_name     = "${var.name}-ec2"
   ecs_fargate_app_name = "${var.name}-fargate"
 

@@ -30,12 +30,10 @@ module "rds" {
 module "s3_storage" {
   source      = "./modules/s3"
   bucket_name = var.s3_storage.bucket_name
+  sites       = local.s3_cors_sites
 }
 
-
 # EC2 instance access key name
-
-
 resource "aws_ecr_repository" "main" {
   name                 = lower(var.name)
   image_tag_mutability = "MUTABLE"
