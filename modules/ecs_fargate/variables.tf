@@ -80,5 +80,10 @@ variable "acm_certificate_arn" {
 
 variable "metric_type" {
   description = "CW Metric type (CPU or Memory) to use to trigger auto scalling. Default to CPU"
-  default = "CPU"
+  default     = "CPU"
+}
+
+variable "domain_name" {
+  description = "The domain name. e.g vtenh.com"
+  type        = string
 }

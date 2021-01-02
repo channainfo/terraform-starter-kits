@@ -56,6 +56,29 @@ resource "aws_alb_listener" "https" {
   }
 }
 
+resource "aws_alb_listener_rule" "redirect_non_www" {
+  priority     = 10
+  listener_arn = aws_alb_listener.https.arn
+
+  action {
+    type = "redirect"
+
+    redirect {
+      host        = "www.${var.domain_name}"
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+
+    }
+  }
+
+  condition {
+    host_header {
+      values = [var.domain_name]
+    }
+  }
+}
+
 resource "aws_ecs_cluster" "main" {
   name = var.name
 }
