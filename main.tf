@@ -135,6 +135,7 @@ module "ecs_fargate" {
   task_role_arn         = module.iam_ecs.task_role_arn
   acm_certificate_arn   = var.acm_certificate_arn
   metric_type           = "CPU"
+  domain_name           = var.domain_name
 }
 
 module "route53" {
