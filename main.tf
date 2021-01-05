@@ -33,6 +33,18 @@ module "s3_storage" {
   sites       = local.s3_cors_sites
 }
 
+module "s3_storage_dev" {
+  source      = "./modules/s3"
+  bucket_name = "${var.s3_storage.bucket_name}-dev"
+  sites       = local.s3_cors_sites
+}
+
+module "s3_storage_staging" {
+  source      = "./modules/s3"
+  bucket_name = "${var.s3_storage.bucket_name}-staging"
+  sites       = local.s3_cors_sites
+}
+
 # EC2 instance access key name
 resource "aws_ecr_repository" "main" {
   name                 = lower(var.name)
@@ -64,39 +76,36 @@ resource "aws_cloudwatch_log_group" "ec2" {
 
 data "template_file" "ecs_ec2" {
   template = file("template/container_def.json.tpl")
-  vars = merge(local.task_template_vars, {
-    "app_mode"       = "web"
+  vars = merge(local.web_container_template_vars, {
     "container_name" = local.ecs_ec2_app_name
     "log_group_name" = aws_cloudwatch_log_group.ec2.name
   })
 }
 
 
-module "ecs_ec2" {
-  source                = "./modules/ecs_ec2"
-  name                  = local.ecs_ec2_app_name
-  task_cpu              = var.task_cpu
-  task_memory           = var.task_memory
-  image_id              = var.image_id
-  instance_type         = var.instance_type
-  vpc_id                = module.vpc.vpc_id
-  security_group_ids    = [module.sg.ecs.id]
-  subnet_ids            = module.vpc.public_subnet_ids
-  key_name              = aws_key_pair.ec2.key_name
-  max_count             = var.max_count
-  min_count             = var.min_count
-  desired_count         = var.desired_count
-  container_cpu         = var.container_cpu
-  container_memory      = var.container_memory
-  container_port        = var.container_port
-  iam_instance_profile  = module.iam_ecs.instance_profile_name
-  execution_role_arn    = module.iam_ecs.execution_role_arn
-  task_role_arn         = module.iam_ecs.task_role_arn
-  container_definitions = data.template_file.ecs_ec2.rendered
-  metric_type           = "CPU"
-}
-
-
+# module "ecs_ec2" {
+#   source                = "./modules/ecs_ec2"
+#   name                  = local.ecs_ec2_app_name
+#   task_cpu              = var.task_cpu
+#   task_memory           = var.task_memory
+#   image_id              = var.image_id
+#   instance_type         = var.instance_type
+#   vpc_id                = module.vpc.vpc_id
+#   security_group_ids    = [module.sg.ecs.id]
+#   subnet_ids            = module.vpc.public_subnet_ids
+#   key_name              = aws_key_pair.ec2.key_name
+#   max_count             = var.max_count
+#   min_count             = var.min_count
+#   desired_count         = var.desired_count
+#   container_cpu         = var.container_cpu
+#   container_memory      = var.container_memory
+#   container_port        = var.container_port
+#   iam_instance_profile  = module.iam_ecs.instance_profile_name
+#   execution_role_arn    = module.iam_ecs.execution_role_arn
+#   task_role_arn         = module.iam_ecs.task_role_arn
+#   container_definitions = data.template_file.ecs_ec2.rendered
+#   metric_type           = "CPU"
+# }
 
 resource "aws_cloudwatch_log_group" "fargate" {
   name_prefix       = "/ecs/${local.ecs_fargate_app_name}"
@@ -109,8 +118,7 @@ resource "aws_cloudwatch_log_group" "fargate" {
 
 data "template_file" "ecs_fargate" {
   template = file("template/container_def.json.tpl")
-  vars = merge(local.task_template_vars, {
-    "app_mode"       = "web"
+  vars = merge(local.web_container_template_vars, {
     "container_name" = local.ecs_fargate_app_name
     "log_group_name" = aws_cloudwatch_log_group.fargate.name
   })
@@ -143,4 +151,68 @@ module "route53" {
   domain_name = var.domain_name
   lb_dns_name = module.ecs_fargate.lb_dns_name
   lb_zone_id  = module.ecs_fargate.lb_zone_id
+}
+
+
+resource "aws_cloudwatch_log_group" "ecs_scheduled_task" {
+  name_prefix       = "/ecs/ecs_scheduled_task"
+  retention_in_days = 7
+
+  tags = {
+    "ecs_schedule_task_log" = "schedule_task module"
+  }
+}
+
+################################### Sitemap
+data "template_file" "sitemap" {
+  template = file("template/container_def.json.tpl")
+
+  # custom command with sitemap
+  vars = merge(local.scheduled_task_container_template_vars, {
+    "rails_task_name" = "sitemap:refresh"
+    "container_name"  = local.ecs_fargate_sitemap
+    "log_group_name"  = aws_cloudwatch_log_group.ecs_scheduled_task.name
+  })
+}
+
+module "ecs_scheduele_sitemap" {
+  source                    = "./modules/ecs_scheduled_task"
+  name                      = local.ecs_fargate_sitemap
+  container_definitions     = data.template_file.sitemap.rendered
+  execution_role_arn        = module.iam_ecs.execution_role_arn
+  task_role_arn             = module.iam_ecs.task_role_arn
+  cpu                       = var.task_cpu
+  memory                    = var.task_memory
+  security_group_ids        = [module.sg.ecs.id]
+  subnet_ids                = module.vpc.public_subnet_ids
+  is_scheduled_task         = true
+  schedule_expression_start = "cron(0 17 * * ? *)"
+  schedule_expression_stop  = "cron(20 17 * * * ? *)"
+}
+
+
+################################### Migration
+data "template_file" "db_migration" {
+  template = file("template/container_def.json.tpl")
+
+  # custom command with db_migration
+  vars = merge(local.scheduled_task_container_template_vars, {
+    "rails_task_name" = "db:migrate"
+    "container_name"  = local.ecs_fargate_db_migration
+    "log_group_name"  = aws_cloudwatch_log_group.ecs_scheduled_task.name
+  })
+}
+
+module "ecs_scheduele_db_migration" {
+  source                    = "./modules/ecs_scheduled_task"
+  name                      = local.ecs_fargate_db_migration
+  container_definitions     = data.template_file.db_migration.rendered
+  execution_role_arn        = module.iam_ecs.execution_role_arn
+  task_role_arn             = module.iam_ecs.task_role_arn
+  cpu                       = var.task_cpu
+  memory                    = var.task_memory
+  security_group_ids        = [module.sg.ecs.id]
+  subnet_ids                = module.vpc.public_subnet_ids
+  is_scheduled_task         = false
+  schedule_expression_start = "cron(0 17 * * ? *)"
 }
