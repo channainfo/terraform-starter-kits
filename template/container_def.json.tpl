@@ -1,5 +1,6 @@
 [
   {
+    ${custom_command}
     "name": "${container_name}",
     "image": "${docker_image_url}",
     "cpu": ${container_cpu},
@@ -23,6 +24,7 @@
       {"name": "PROTECTED_USERNAME", "value": "${protected_username}"},
       {"name": "PROTECTED_PASSWORD", "value": "${protected_password}"},
       {"name": "RAILS_ENV", "value": "production"},
+      {"name": "RAILS_LOG_TO_STDOUT", "value": "1"},
       {"name": "RAILS_MASTER_KEY", "value": "${rails_master_key}"},
       {"name": "RAILS_MIN_INSTANCES", "value": "${rails_min_instances}"},
       {"name": "RAILS_MAX_INSTANCES", "value": "${rails_max_instance}"},

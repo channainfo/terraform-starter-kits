@@ -40,22 +40,23 @@ variable "rails_master_key" {
   default = ""
 }
 
+# Some time too low memory and CPU causing cloud watch not to send event strream
 variable "task_cpu" {
-  default = "1024"
+  default = "256"
 }
 
 variable "task_memory" {
-  default = "2014"
+  default = "1024"
 }
 
 variable "container_cpu" {
   description = "Number of CPU Unit. 1024 eq 1CPU"
   type        = string
-  default     = "1024"
+  default     = "256"
 }
 
 variable "container_memory" {
-  default = 1024
+  default = "1024"
 }
 
 variable "container_port" {
@@ -108,6 +109,11 @@ variable "protected_password" {
   default = ""
 }
 
+variable "task_command_file" {
+  description = "Exec bash file to execute as default docker CMD."
+  default     = "/tmp/custom_script/task.sh"
+}
+
 variable "app_environments" {
   default = {
     rails_master_key    = ""
@@ -115,8 +121,8 @@ variable "app_environments" {
     asset_host_url      = "
     host                = "
     firebase_project_id = ""
-    rails_min_instances = 5
-    rails_max_instance  = 10
+    rails_min_instances = 4
+    rails_max_instance  = 6
     sms_sender_id       = ""
     smtp_server         = ""
     smtp_username       = ""
