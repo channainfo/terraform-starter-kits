@@ -8,15 +8,16 @@ locals {
 
   ecs_ec2_app_name     = "${var.name}-ec2"
   ecs_fargate_app_name = "${var.name}-fargate"
+  ecs_scheduled_task   = "${var.name}-scheduled-task"
 
   docker_image_url = aws_ecr_repository.main.repository_url
 
 
   task_template_vars = merge(var.app_environments, {
-    app_name         = "VTenh"
-    bucket_Name      = var.s3_storage.bucket_name
-    docker_image_url = local.docker_image_url
-
+    app_name           = "VTenh"
+    bucket_Name        = var.s3_storage.bucket_name
+    docker_image_url   = local.docker_image_url
+    rails_task_name    = ""
     container_cpu      = var.container_cpu
     container_memory   = var.container_memory
     container_port     = var.container_port
