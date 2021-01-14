@@ -63,3 +63,8 @@ output "route53_dns" {
     non_www_fqdn = module.route53.non_www_fqdn
   }
 }
+
+
+output "ecs_task" {
+  value = data.template_file.sitemap.rendered
+}
