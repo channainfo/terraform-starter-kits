@@ -87,3 +87,8 @@ variable "domain_name" {
   description = "The domain name. e.g vtenh.com"
   type        = string
 }
+
+variable "container_insights" {
+  type    = bool
+  default = true
+}
