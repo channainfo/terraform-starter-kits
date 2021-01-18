@@ -81,6 +81,11 @@ resource "aws_alb_listener_rule" "redirect_non_www" {
 
 resource "aws_ecs_cluster" "main" {
   name = var.name
+
+  setting {
+    name  = "containerInsights"
+    value = var.container_insights == true ? "enabled" : "disabled"
+  }
 }
 
 resource "aws_ecs_task_definition" "main" {
