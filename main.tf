@@ -223,3 +223,14 @@ module "ecs_scheduele_db_migration" {
   is_scheduled_task         = false
   schedule_expression_start = "cron(0 17 * * ? *)"
 }
+
+module "run_migration" {
+  source             = "./modules/ecs_one_off_task"
+  ecs_cluster_name   = module.ecs_fargate.cluster_name
+  task_arn           = module.ecs_scheduele_db_migration.task_arn
+  security_group_ids = [module.sg.ecs.id]
+  subnet_ids         = module.vpc.public_subnet_ids
+  profile            = var.aws.config.profile
+  region             = var.aws.credentials.region
+
+}
