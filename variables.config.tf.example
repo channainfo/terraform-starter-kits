@@ -1,6 +1,10 @@
 
 variable "aws" {
   default = {
+    config = {
+      profile = "vtenh"
+    }
+
     credentials = {
       "region"     = ""
       "access_key" = ""

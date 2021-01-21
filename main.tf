@@ -66,7 +66,7 @@ module "iam_ecs" {
 }
 
 resource "aws_cloudwatch_log_group" "ec2" {
-  name_prefix       = "/ecs/${local.ecs_ec2_app_name}"
+  name_prefix       = "/ecs/vtenh-ec2"
   retention_in_days = 7
 
   tags = {
@@ -108,11 +108,11 @@ data "template_file" "ecs_ec2" {
 # }
 
 resource "aws_cloudwatch_log_group" "fargate" {
-  name_prefix       = "/ecs/${local.ecs_fargate_app_name}"
+  name              = "/ecs/vtenh-web"
   retention_in_days = 7
 
   tags = {
-    "ecs_fargate_log" = "fargate module"
+    "ecs_fargate_log" = "fargate"
   }
 }
 
@@ -154,16 +154,15 @@ module "route53" {
 }
 
 
-resource "aws_cloudwatch_log_group" "ecs_scheduled_task" {
-  name_prefix       = "/ecs/ecs_scheduled_task"
+################################### Sitemap
+resource "aws_cloudwatch_log_group" "sitemap" {
+  name_prefix       = "/ecs/sitemap"
   retention_in_days = 7
 
   tags = {
-    "ecs_schedule_task_log" = "schedule_task module"
+    "ecs_schedule_task_log" = "sitemap"
   }
 }
-
-################################### Sitemap
 data "template_file" "sitemap" {
   template = file("template/container_def.json.tpl")
 
@@ -171,7 +170,7 @@ data "template_file" "sitemap" {
   vars = merge(local.scheduled_task_container_template_vars, {
     "rails_task_name" = "sitemap:refresh"
     "container_name"  = local.ecs_fargate_sitemap
-    "log_group_name"  = aws_cloudwatch_log_group.ecs_scheduled_task.name
+    "log_group_name"  = aws_cloudwatch_log_group.sitemap.name
   })
 }
 
@@ -192,6 +191,14 @@ module "ecs_scheduele_sitemap" {
 
 
 ################################### Migration
+resource "aws_cloudwatch_log_group" "migration" {
+  name_prefix       = "/ecs/migration"
+  retention_in_days = 7
+
+  tags = {
+    "ecs_schedule_task_log" = "migration"
+  }
+}
 data "template_file" "db_migration" {
   template = file("template/container_def.json.tpl")
 
@@ -199,7 +206,7 @@ data "template_file" "db_migration" {
   vars = merge(local.scheduled_task_container_template_vars, {
     "rails_task_name" = "db:migrate"
     "container_name"  = local.ecs_fargate_db_migration
-    "log_group_name"  = aws_cloudwatch_log_group.ecs_scheduled_task.name
+    "log_group_name"  = aws_cloudwatch_log_group.migration.name
   })
 }
 
@@ -215,4 +222,15 @@ module "ecs_scheduele_db_migration" {
   subnet_ids                = module.vpc.public_subnet_ids
   is_scheduled_task         = false
   schedule_expression_start = "cron(0 17 * * ? *)"
+}
+
+module "run_migration" {
+  source             = "./modules/ecs_one_off_task"
+  ecs_cluster_name   = module.ecs_fargate.cluster_name
+  task_arn           = module.ecs_scheduele_db_migration.task_arn
+  security_group_ids = [module.sg.ecs.id]
+  subnet_ids         = module.vpc.public_subnet_ids
+  profile            = var.aws.config.profile
+  region             = var.aws.credentials.region
+
 }
