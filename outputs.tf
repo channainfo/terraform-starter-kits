@@ -64,7 +64,14 @@ output "route53_dns" {
   }
 }
 
-
 output "ecs_task" {
   value = data.template_file.sitemap.rendered
+}
+
+output "redis" {
+  value = {
+    address = module.redis.cluster_address
+    port    = module.redis.cluster_port
+    url     = local.redis_url
+  }
 }

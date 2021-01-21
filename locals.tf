@@ -14,6 +14,7 @@ locals {
   ecs_fargate_db_migration = "${var.name}-db-migration"
 
   docker_image_url = aws_ecr_repository.main.repository_url
+  redis_url        = "redis://${module.redis.cluster_address}:${module.redis.cluster_port}/1"
 
   container_template_vars = merge(var.app_environments, {
     app_name         = "VTenh"
@@ -33,7 +34,7 @@ locals {
     rds_db_name        = var.rds.postgresql.db_name
     rds_db_user        = var.rds.postgresql.db_username
     rds_db_password    = var.rds.postgresql.db_password
-
+    redis_url          = local.redis_url
   })
 
   web_container_template_vars = merge(local.container_template_vars, {
