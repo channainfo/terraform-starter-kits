@@ -1,9 +1,7 @@
-
-variable "ecs_cluster_name" {
+variable "name" {
   type = string
 }
-
-variable "task_arn" {
+variable "ecs_cluster_name" {
   type = string
 }
 
@@ -21,4 +19,24 @@ variable "security_group_ids" {
 
 variable "subnet_ids" {
   type = list(string)
+}
+
+variable "cpu" {
+  type = string
+}
+
+variable "memory" {
+  type = string
+}
+
+variable "container_definitions" {
+  type = string
+}
+
+variable "task_role_arn" {
+  type = string
+}
+
+variable "execution_role_arn" {
+  type = string
 }
