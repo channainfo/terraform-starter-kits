@@ -65,6 +65,13 @@ resource "aws_ecr_repository" "main" {
   }
 }
 
+module "route53" {
+  source      = "./modules/route53"
+  domain_name = var.domain_name
+  lb_dns_name = module.ecs_fargate.lb_dns_name
+  lb_zone_id  = module.ecs_fargate.lb_zone_id
+}
+
 resource "aws_key_pair" "ec2" {
   key_name   = var.name
   public_key = file(var.ssh_public_key_file)
@@ -75,29 +82,31 @@ module "iam_ecs" {
   name   = lower(var.name)
 }
 
-resource "aws_cloudwatch_log_group" "ec2" {
-  name_prefix       = "/ecs/vtenh-ec2"
-  retention_in_days = 7
+################################## ECS EC2 ######################################
 
-  tags = {
-    "ecs_ec2_log" = "ec2 module"
-  }
-}
+# resource "aws_cloudwatch_log_group" "ec2" {
+#   name_prefix       = "/ecs/vtenh-ec2"
+#   retention_in_days = 7
 
-data "template_file" "ecs_ec2" {
-  template = file("template/container_def.json.tpl")
-  vars = merge(local.web_container_template_vars, {
-    "container_name" = local.ecs_ec2_app_name
-    "log_group_name" = aws_cloudwatch_log_group.ec2.name
-  })
-}
+#   tags = {
+#     "ecs_ec2_log" = "ec2 module"
+#   }
+# }
+
+# data "template_file" "ecs_ec2" {
+#   template = file("template/container_def.json.tpl")
+#   vars = merge(local.web_container_template_vars, {
+#     "container_name" = local.ecs_ec2_app_name
+#     "log_group_name" = aws_cloudwatch_log_group.ec2.name
+#   })
+# }
 
 
 # module "ecs_ec2" {
 #   source                = "./modules/ecs_ec2"
 #   name                  = local.ecs_ec2_app_name
-#   task_cpu              = var.task_cpu
-#   task_memory           = var.task_memory
+#   task_cpu              = var.web_cpu
+#   task_memory           = var.web_memory
 #   image_id              = var.image_id
 #   instance_type         = var.instance_type
 #   vpc_id                = module.vpc.vpc_id
@@ -117,6 +126,10 @@ data "template_file" "ecs_ec2" {
 #   metric_type           = "CPU"
 # }
 
+# ============================= END  ECS EC2 =====================================
+
+
+################################# Fargate #########################################
 resource "aws_cloudwatch_log_group" "fargate" {
   name              = "/ecs/vtenh-web"
   retention_in_days = 7
@@ -142,8 +155,8 @@ module "ecs_fargate" {
   subnet_ids            = module.vpc.public_subnet_ids
   vpc_id                = module.vpc.vpc_id
   health_check_path     = var.health_check_path
-  cpu                   = var.task_cpu
-  memory                = var.task_memory
+  cpu                   = var.web_cpu
+  memory                = var.web_memory
   desired_count         = var.desired_count
   max_count             = var.max_count
   min_count             = var.min_count
@@ -155,16 +168,11 @@ module "ecs_fargate" {
   metric_type           = "CPU"
   domain_name           = var.domain_name
 }
-
-module "route53" {
-  source      = "./modules/route53"
-  domain_name = var.domain_name
-  lb_dns_name = module.ecs_fargate.lb_dns_name
-  lb_zone_id  = module.ecs_fargate.lb_zone_id
-}
+#===================================== End Fargate ===============================
 
 
-################################### Sitemap
+
+################################### Sitemap ######################################
 resource "aws_cloudwatch_log_group" "sitemap" {
   name_prefix       = "/ecs/sitemap"
   retention_in_days = 7
@@ -185,7 +193,7 @@ data "template_file" "sitemap" {
 }
 
 module "ecs_scheduele_sitemap" {
-  source                    = "./modules/ecs_scheduled_task"
+  source                    = "./modules/ecs_run_task"
   name                      = local.ecs_fargate_sitemap
   container_definitions     = data.template_file.sitemap.rendered
   execution_role_arn        = module.iam_ecs.execution_role_arn
@@ -198,9 +206,48 @@ module "ecs_scheduele_sitemap" {
   schedule_expression_start = "cron(0 17 * * ? *)"
   schedule_expression_stop  = "cron(20 17 * * * ? *)"
 }
+#=============================== End Sitemap ======================================
 
 
-################################### Migration
+
+################################# Migration #######################################
+# resource "aws_cloudwatch_log_group" "migration" {
+#   name_prefix       = "/ecs/migration"
+#   retention_in_days = 7
+
+#   tags = {
+#     "ecs_schedule_task_log" = "migration"
+#   }
+# }
+# data "template_file" "db_migration" {
+#   template = file("template/container_def.json.tpl")
+
+#   # custom command with db_migration
+#   vars = merge(local.scheduled_task_container_template_vars, {
+#     "rails_task_name" = "db:migrate"
+#     "container_name"  = local.ecs_fargate_db_migration
+#     "log_group_name"  = aws_cloudwatch_log_group.migration.name
+#   })
+# }
+
+# module "ecs_scheduele_db_migration" {
+#   source                    = "./modules/ecs_run_task"
+#   name                      = local.ecs_fargate_db_migration
+#   container_definitions     = data.template_file.db_migration.rendered
+#   execution_role_arn        = module.iam_ecs.execution_role_arn
+#   task_role_arn             = module.iam_ecs.task_role_arn
+#   cpu                       = var.task_cpu
+#   memory                    = var.task_memory
+#   security_group_ids        = [module.sg.ecs.id]
+#   subnet_ids                = module.vpc.public_subnet_ids
+#   is_scheduled_task         = false
+#   schedule_expression_start = "cron(0 17 * * ? *)"
+# }
+#---------------------------------- End Migration ----------------------------------
+
+
+
+############################ Run Migration One off task #############################
 resource "aws_cloudwatch_log_group" "migration" {
   name_prefix       = "/ecs/migration"
   retention_in_days = 7
@@ -219,28 +266,50 @@ data "template_file" "db_migration" {
     "log_group_name"  = aws_cloudwatch_log_group.migration.name
   })
 }
-
-module "ecs_scheduele_db_migration" {
-  source                    = "./modules/ecs_scheduled_task"
-  name                      = local.ecs_fargate_db_migration
-  container_definitions     = data.template_file.db_migration.rendered
-  execution_role_arn        = module.iam_ecs.execution_role_arn
-  task_role_arn             = module.iam_ecs.task_role_arn
-  cpu                       = var.task_cpu
-  memory                    = var.task_memory
-  security_group_ids        = [module.sg.ecs.id]
-  subnet_ids                = module.vpc.public_subnet_ids
-  is_scheduled_task         = false
-  schedule_expression_start = "cron(0 17 * * ? *)"
-}
-
 module "run_migration" {
-  source             = "./modules/ecs_one_off_task"
-  ecs_cluster_name   = module.ecs_fargate.cluster_name
-  task_arn           = module.ecs_scheduele_db_migration.task_arn
-  security_group_ids = [module.sg.ecs.id]
-  subnet_ids         = module.vpc.public_subnet_ids
-  profile            = var.aws.config.profile
-  region             = var.aws.credentials.region
-
+  source                = "./modules/ecs_one_off_task"
+  name                  = "ECS-Migration"
+  ecs_cluster_name      = module.ecs_fargate.cluster_name
+  container_definitions = data.template_file.db_migration.rendered
+  execution_role_arn    = module.iam_ecs.execution_role_arn
+  task_role_arn         = module.iam_ecs.task_role_arn
+  cpu                   = var.task_cpu
+  memory                = var.task_memory
+  security_group_ids    = [module.sg.ecs.id]
+  subnet_ids            = module.vpc.public_subnet_ids
+  profile               = var.aws.config.profile
+  region                = var.aws.credentials.region
 }
+
+################################# QUEUE  #########################################
+resource "aws_cloudwatch_log_group" "ecs_queue" {
+  name              = "/ecs/vtenh-queue"
+  retention_in_days = 7
+
+  tags = {
+    "ecs_queue_log" = "ecs_queue"
+  }
+}
+
+data "template_file" "ecs_queue" {
+  template = file("template/container_def.json.tpl")
+  vars = merge(local.queue_container_template_vars, {
+    "container_name" = local.ecs_queue_name
+    "log_group_name" = aws_cloudwatch_log_group.ecs_queue.name
+  })
+}
+# Use fargate container for queue
+module "run_queue" {
+  source                = "./modules/ecs_run_task"
+  name                  = "ECS-Queue"
+  container_definitions = data.template_file.ecs_queue.rendered
+  execution_role_arn    = module.iam_ecs.execution_role_arn
+  task_role_arn         = module.iam_ecs.task_role_arn
+  cpu                   = var.queue_cpu
+  memory                = var.queue_memory
+  security_group_ids    = [module.sg.ecs.id]
+  subnet_ids            = module.vpc.public_subnet_ids
+  is_scheduled_task     = false
+}
+
+#===================================== End Queue ===============================

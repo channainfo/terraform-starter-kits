@@ -29,6 +29,8 @@
       {"name": "RAILS_MIN_INSTANCES", "value": "${rails_min_instances}"},
       {"name": "RAILS_MAX_INSTANCES", "value": "${rails_max_instance}"},
       {"name": "REDIS_URL", "value": "${redis_url}"},
+      {"name": "SIDEKIQ_USERNAME", "value": "${sidekiq_username}"},
+      {"name": "SIDEKIQ_PASSWORD", "value": "${sidekiq_password}"},
       {"name": "SMS_SENDER_ID", "value": "${sms_sender_id}"},
       {"name": "SMTP_SERVER", "value": "${smtp_server}"},
       {"name": "SMTP_USERNAME", "value": "${smtp_username}"},

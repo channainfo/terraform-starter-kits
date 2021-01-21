@@ -2,6 +2,11 @@ variable "name" {
   type = string
 }
 
+variable "ecs_cluster" {
+  description = "if ecs_cluster is missing then this module will create a new cluster"
+  default     = ""
+}
+
 variable "cpu" {
   type = string
 }
@@ -23,13 +28,14 @@ variable "execution_role_arn" {
 }
 
 variable "schedule_expression_start" {
-  description = "cron(min hour day-of-month month day-of-week year)"
+  description = "cron(min hour day-of-month month day-of-week year). Required if is_scheduled_task is false"
   type        = string
+  default     = ""
 }
 
 
 variable "schedule_expression_stop" {
-  description = "cron(min hour day-of-month month day-of-week year). optional if is_scheduled_task"
+  description = "cron(min hour day-of-month month day-of-week year). optional if is_scheduled_task. Required if is_scheduled_task is true"
   type        = string
   default     = ""
 }
