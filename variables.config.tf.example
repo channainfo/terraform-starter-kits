@@ -44,23 +44,31 @@ variable "rails_master_key" {
   default = ""
 }
 
-# Some time too low memory and CPU causing cloud watch not to send event strream
+
+variable "queue_cpu" {
+  default = 512
+}
+
+variable "queue_memory" {
+  default = 1024
+}
+
 variable "task_cpu" {
-  default = "256"
+  default = 512
 }
 
 variable "task_memory" {
-  default = "1024"
+  default = 1024
 }
 
-variable "container_cpu" {
+variable "web_cpu" {
   description = "Number of CPU Unit. 1024 eq 1CPU"
   type        = string
-  default     = "256"
+  default     = 1024
 }
 
-variable "container_memory" {
-  default = "1024"
+variable "web_memory" {
+  default = 2048
 }
 
 variable "container_port" {
@@ -127,6 +135,8 @@ variable "app_environments" {
     firebase_project_id = ""
     rails_min_instances = 4
     rails_max_instance  = 6
+    sidekiq_username    = ""
+    sidekiq_password    = ""
     sms_sender_id       = ""
     smtp_server         = ""
     smtp_username       = ""
