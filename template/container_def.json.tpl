@@ -19,6 +19,7 @@
       {"name": "DEVISE_SECRET_KEY", "value": "${device_secret_key}"},
       {"name": "FIREBASE_PROJECT_ID", "value": "${firebase_project_id}"},
       {"name": "HOST", "value": "${host}"},
+      {"name": "MEMCACHE_SERVERS", "value": "${memcached_servers}"},
       {"name": "MODE_ENV", "value": "${app_mode}"},
       {"name": "RAILS_TASK_NAME", "value": "${rails_task_name}"},
       {"name": "PROTECTED_USERNAME", "value": "${protected_username}"},

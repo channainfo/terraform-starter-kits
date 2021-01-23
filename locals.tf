@@ -14,20 +14,23 @@ locals {
   ecs_fargate_db_migration = "${var.name}-db-migration"
   ecs_queue_name           = "${var.name}-queue"
 
-  docker_image_url = aws_ecr_repository.main.repository_url
-  redis_url        = "redis://${module.redis.cluster_address}:${module.redis.cluster_port}/1"
+  docker_image_url   = aws_ecr_repository.main.repository_url
+  memcached_endpoint = module.memcached.configuration_endpoint
+  redis_url          = "redis://${module.redis.cluster_address}:${module.redis.cluster_port}/1"
+
 
   container_template_vars = merge(var.app_environments, {
-    app_name         = "VTenh"
-    bucket_Name      = var.s3_storage.bucket_name
+    app_name       = "VTenh"
+    bucket_Name    = var.s3_storage.bucket_name
+    container_port = var.container_port
+    custom_command = ""
+
     docker_image_url = local.docker_image_url
 
-    custom_command  = ""
-    rails_task_name = ""
-
-    container_port     = var.container_port
+    memcached_servers  = local.memcached_endpoint
     protected_username = var.protected_username
     protected_password = var.protected_password
+    rails_task_name    = ""
     region             = var.aws.credentials.region
     rds_db_host        = module.rds.postgresql_address
     rds_db_name        = var.rds.postgresql.db_name

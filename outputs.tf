@@ -75,3 +75,10 @@ output "redis" {
     url     = local.redis_url
   }
 }
+
+output "memcached" {
+  value = {
+    cluster_address        = module.memcached.cluster_address
+    configuration_endpoint = module.memcached.configuration_endpoint
+  }
+}
