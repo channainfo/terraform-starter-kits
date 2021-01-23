@@ -37,6 +37,16 @@ module "redis" {
   parameter_group_name = "default.redis6.x"
 }
 
+module "memcached" {
+  source               = "./modules/elasticache_memcached"
+  identifier           = "memcached"
+  subnet_ids           = module.vpc.private_subnet_ids
+  security_group_ids   = [module.sg.memcached.id]
+  node_type            = "cache.t3.small"
+  engine_version       = "1.6.6"
+  parameter_group_name = "default.memcached1.6"
+}
+
 module "s3_storage" {
   source      = "./modules/s3"
   bucket_name = var.s3_storage.bucket_name
