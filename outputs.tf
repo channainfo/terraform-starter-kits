@@ -82,3 +82,7 @@ output "memcached" {
     configuration_endpoint = module.memcached.configuration_endpoint
   }
 }
+
+output "migration_comand" {
+  value = module.run_migration.command
+}
