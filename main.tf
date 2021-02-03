@@ -76,10 +76,11 @@ resource "aws_ecr_repository" "main" {
 }
 
 module "route53" {
-  source      = "./modules/route53"
-  domain_name = var.domain_name
-  lb_dns_name = module.ecs_fargate.lb_dns_name
-  lb_zone_id  = module.ecs_fargate.lb_zone_id
+  source            = "./modules/route53"
+  domain_name       = var.domain_name
+  lb_dns_name       = module.ecs_fargate.lb_dns_name
+  lb_zone_id        = module.ecs_fargate.lb_zone_id
+  sendgrid_settings = var.sendgrid_dns_settings
 }
 
 resource "aws_key_pair" "ec2" {

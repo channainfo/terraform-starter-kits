@@ -27,3 +27,12 @@ resource "aws_route53_record" "www" {
     evaluate_target_health = false
   }
 }
+resource "aws_route53_record" "sendgrid" {
+  count   = length(var.sendgrid_settings)
+  zone_id = data.aws_route53_zone.main.zone_id
+
+  name    = var.sendgrid_settings[count.index].name
+  type    = "CNAME"
+  ttl     = "5"
+  records = [var.sendgrid_settings[count.index].value]
+}

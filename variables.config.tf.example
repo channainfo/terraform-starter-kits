@@ -143,3 +143,9 @@ variable "app_environments" {
     smtp_password       = ""
   }
 }
+
+variable "sendgrid_dns_settings" {
+  default = [
+    # { name = "", value = "" },
+  ]
+}
