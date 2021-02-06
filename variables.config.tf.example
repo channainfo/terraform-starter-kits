@@ -126,6 +126,11 @@ variable "task_command_file" {
   default     = "/tmp/custom_script/task.sh"
 }
 
+# local site to allow to access CORS s3 if required
+variable "cors_local_sites" {
+  default = []
+}
+
 variable "app_environments" {
   default = {
     rails_master_key    = ""

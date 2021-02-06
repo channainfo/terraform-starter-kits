@@ -6,7 +6,7 @@ locals {
 
   custom_task_command = "\"command\": [ \"/tmp/custom_script/task.sh\" ],"
 
-  s3_cors_sites = ["https://${var.domain_name}", "https://www.${var.domain_name}"]
+  s3_cors_sites = concat(["https://${var.domain_name}", "https://www.${var.domain_name}"], var.cors_local_sites)
 
   ecs_ec2_app_name         = "${var.name}-ec2"
   ecs_fargate_app_name     = "${var.name}-fargate"

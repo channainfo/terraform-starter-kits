@@ -7,7 +7,7 @@ resource "aws_s3_bucket" "main" {
   # https://edgeguides.rubyonrails.org/active_storage_overview.html#example-s3-cors-configuration
   cors_rule {
     allowed_headers = ["*"]
-    allowed_methods = ["PUT", "POST"]
+    allowed_methods = ["PUT", "POST", "GET"]
     # ["https://s3-website-test.hashicorp.com"]
     allowed_origins = var.sites
     expose_headers = [
